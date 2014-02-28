@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>ch.bfh.fbi.mobiComp.tinkerforge.fridgeit</name>
+	<name>Mobile - Lift</name>
 	<comment></comment>
 	<projects>
-		<project>com.tinkerforge</project>
+		<project>Mobile_Lift</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
