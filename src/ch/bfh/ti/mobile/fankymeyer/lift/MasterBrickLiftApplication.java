@@ -18,9 +18,8 @@ import com.tinkerforge.TimeoutException;
  * Listensers!
  * 
  * @author reto
- * 
  */
-public class MasterBrickApplication extends AbstractTinkerforgeApplication {
+public class MasterBrickLiftApplication extends AbstractTinkerforgeApplication {
 
 	@Override
 	public void deviceDisconnected(
