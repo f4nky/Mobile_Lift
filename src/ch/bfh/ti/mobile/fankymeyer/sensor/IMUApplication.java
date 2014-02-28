@@ -10,7 +10,8 @@ import ch.quantasy.tinkerforge.tinker.agent.implementation.TinkerforgeStackAgent
 import ch.quantasy.tinkerforge.tinker.application.implementation.AbstractTinkerforgeApplication;
 import ch.quantasy.tinkerforge.tinker.core.implementation.TinkerforgeDevice;
 
-public class IMUApplication extends AbstractTinkerforgeApplication implements AccelerationListener {
+public class IMUApplication extends AbstractTinkerforgeApplication implements
+		AccelerationListener {
 
 	@Override
 	public void deviceConnected(TinkerforgeStackAgent tinkerforgeStackAgent,
@@ -18,7 +19,7 @@ public class IMUApplication extends AbstractTinkerforgeApplication implements Ac
 		if (TinkerforgeDevice.getDevice(device) == TinkerforgeDevice.IMU) {
 			final BrickIMU imu = (BrickIMU) device;
 			imu.addAccelerationListener(this);
-			
+
 			try {
 				imu.setAccelerationPeriod(500);
 			} catch (TimeoutException e) {
@@ -37,11 +38,12 @@ public class IMUApplication extends AbstractTinkerforgeApplication implements Ac
 			imu.removeAccelerationListener(this);
 		}
 	}
-	
+
 	@Override
 	public void acceleration(short x, short y, short z) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("x = " + x);
+		System.out.println("y = " + y);
+		System.out.println("z = " + z);
 	}
 
 	@Override

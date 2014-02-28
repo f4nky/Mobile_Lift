@@ -1,5 +1,6 @@
 package ch.bfh.ti.mobile.fankymeyer.lift;
 
+import ch.bfh.ti.mobile.fankymeyer.sensor.IMUApplication;
 import ch.quantasy.tinkerforge.tinker.agency.implementation.TinkerforgeStackAgency;
 import ch.quantasy.tinkerforge.tinker.agent.implementation.TinkerforgeStackAgent;
 import ch.quantasy.tinkerforge.tinker.agent.implementation.TinkerforgeStackAgentIdentifier;
@@ -15,7 +16,7 @@ public class LiftManager {
 	private final TinkerforgeStackAgent agent;
 
 	public LiftManager(String hostname) {
-		liftIt = new MasterBrickLiftApplication();
+		liftIt = new IMUApplication();
 		agent = TinkerforgeStackAgency.getInstance().getStackAgent(
 				new TinkerforgeStackAgentIdentifier(hostname));
 	}
