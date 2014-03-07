@@ -1,24 +1,27 @@
 package ch.bfh.ti.mobile.fankymeyer.sensor;
 
-import com.tinkerforge.BrickIMU;
-import com.tinkerforge.BrickIMU.AccelerationListener;
-import com.tinkerforge.Device;
-import com.tinkerforge.NotConnectedException;
-import com.tinkerforge.TimeoutException;
-
 import ch.quantasy.tinkerforge.tinker.agent.implementation.TinkerforgeStackAgent;
 import ch.quantasy.tinkerforge.tinker.application.implementation.AbstractTinkerforgeApplication;
 import ch.quantasy.tinkerforge.tinker.core.implementation.TinkerforgeDevice;
 
-public class IMUApplication extends AbstractTinkerforgeApplication implements
-		AccelerationListener {
+import com.tinkerforge.BrickIMU;
+import com.tinkerforge.Device;
+import com.tinkerforge.NotConnectedException;
+import com.tinkerforge.TimeoutException;
+
+public class IMUApplication extends AbstractTinkerforgeApplication {
+	private IMUListener listener;
+
+	public IMUApplication(IMUListener listener) {
+		this.listener = listener;
+	}
 
 	@Override
 	public void deviceConnected(TinkerforgeStackAgent tinkerforgeStackAgent,
 			Device device) {
 		if (TinkerforgeDevice.getDevice(device) == TinkerforgeDevice.IMU) {
 			final BrickIMU imu = (BrickIMU) device;
-			imu.addAccelerationListener(this);
+			imu.addAccelerationListener(listener);
 
 			try {
 				imu.setAccelerationPeriod(500);
@@ -35,15 +38,8 @@ public class IMUApplication extends AbstractTinkerforgeApplication implements
 			Device device) {
 		if (TinkerforgeDevice.getDevice(device) == TinkerforgeDevice.IMU) {
 			final BrickIMU imu = (BrickIMU) device;
-			imu.removeAccelerationListener(this);
+			imu.removeAccelerationListener(listener);
 		}
-	}
-
-	@Override
-	public void acceleration(short x, short y, short z) {
-		System.out.println("x = " + x);
-		System.out.println("y = " + y);
-		System.out.println("z = " + z);
 	}
 
 	@Override

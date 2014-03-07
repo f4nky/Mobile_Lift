@@ -1,10 +1,11 @@
 package ch.bfh.ti.mobile.fankymeyer.lift;
 
 import ch.bfh.ti.mobile.fankymeyer.sensor.IMUApplication;
+import ch.bfh.ti.mobile.fankymeyer.sensor.IMUListener;
+import ch.bfh.ti.mobile.fankymeyer.viewer.LiftViewer;
 import ch.quantasy.tinkerforge.tinker.agency.implementation.TinkerforgeStackAgency;
 import ch.quantasy.tinkerforge.tinker.agent.implementation.TinkerforgeStackAgent;
 import ch.quantasy.tinkerforge.tinker.agent.implementation.TinkerforgeStackAgentIdentifier;
-import ch.quantasy.tinkerforge.tinker.application.definition.TinkerforgeApplication;
 
 /**
  * This is the part where everything gets connected.
@@ -12,21 +13,25 @@ import ch.quantasy.tinkerforge.tinker.application.definition.TinkerforgeApplicat
  * @author Christian Meyer
  */
 public class LiftManager {
-	private final TinkerforgeApplication liftIt;
+	private final IMUApplication liftIt;
+	private final LiftViewer showIt;
 	private final TinkerforgeStackAgent agent;
 
 	public LiftManager(String hostname) {
-		liftIt = new IMUApplication();
+		showIt = new LiftViewer();
+		liftIt = new IMUApplication(new IMUListener(showIt));
 		agent = TinkerforgeStackAgency.getInstance().getStackAgent(
 				new TinkerforgeStackAgentIdentifier(hostname));
 	}
 
 	public void start() {
 		agent.addApplication(liftIt);
+		agent.addApplication(showIt);
 	}
 
 	public void stop() {
 		agent.removeApplication(liftIt);
+		agent.removeApplication(showIt);
 	}
 
 	/**
