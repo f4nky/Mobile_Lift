@@ -9,4 +9,6 @@ public interface Viewer {
 	void showAcceleration(double x, double y, double z);
 
 	void showDistance(double distanceInMeters);
+
+	void showHeight(int heightInCm);
 }

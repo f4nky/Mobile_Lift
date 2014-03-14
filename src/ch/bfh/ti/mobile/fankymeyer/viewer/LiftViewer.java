@@ -17,7 +17,8 @@ public class LiftViewer extends AbstractTinkerforgeApplication implements
 
 	private static final short ACC_HEADER_LINE = 0;
 	private static final short ACC_DATA_LINE = 1;
-	private static final short DIST_LINE = 3;
+	private static final short DIST_LINE = 2;
+	private static final short HEIGHT_LINE = 3;
 	private BrickletLCD20x4 lcd;
 
 	private static final DecimalFormat DIST_FORMAT = new DecimalFormat("0.00");
@@ -62,6 +63,12 @@ public class LiftViewer extends AbstractTinkerforgeApplication implements
 	public void showDistance(double distanceInMeters) {
 		String distLine = DIST_FORMAT.format(distanceInMeters) + " m     ";
 		this.writeValueToLCD(distLine, LiftViewer.DIST_LINE);
+	}
+
+	@Override
+	public void showHeight(int heightInCm) {
+		String heightLine = DIST_FORMAT.format(heightInCm / 100.0) + " m     ";
+		this.writeValueToLCD(heightLine, LiftViewer.HEIGHT_LINE);
 	}
 
 	private void initLCD() {

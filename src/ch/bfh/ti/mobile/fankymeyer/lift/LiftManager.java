@@ -1,5 +1,7 @@
 package ch.bfh.ti.mobile.fankymeyer.lift;
 
+import ch.bfh.ti.mobile.fankymeyer.sensor.BarometerApplication;
+import ch.bfh.ti.mobile.fankymeyer.sensor.BarometerListener;
 import ch.bfh.ti.mobile.fankymeyer.sensor.IMUApplication;
 import ch.bfh.ti.mobile.fankymeyer.sensor.IMUListener;
 import ch.bfh.ti.mobile.fankymeyer.viewer.LiftViewer;
@@ -13,24 +15,29 @@ import ch.quantasy.tinkerforge.tinker.agent.implementation.TinkerforgeStackAgent
  * @author Christian Meyer
  */
 public class LiftManager {
-	private final IMUApplication liftIt;
+	private final IMUApplication imuApplication;
+	private final BarometerApplication barometerApplication;
 	private final LiftViewer showIt;
 	private final TinkerforgeStackAgent agent;
 
 	public LiftManager(String hostname) {
 		showIt = new LiftViewer();
-		liftIt = new IMUApplication(new IMUListener(showIt));
+		imuApplication = new IMUApplication(new IMUListener(showIt));
+		barometerApplication = new BarometerApplication(new BarometerListener(
+				showIt));
 		agent = TinkerforgeStackAgency.getInstance().getStackAgent(
 				new TinkerforgeStackAgentIdentifier(hostname));
 	}
 
 	public void start() {
-		agent.addApplication(liftIt);
+		agent.addApplication(imuApplication);
+		agent.addApplication(barometerApplication);
 		agent.addApplication(showIt);
 	}
 
 	public void stop() {
-		agent.removeApplication(liftIt);
+		agent.removeApplication(imuApplication);
+		agent.removeApplication(barometerApplication);
 		agent.removeApplication(showIt);
 	}
 
