@@ -3,6 +3,7 @@ package ch.bfh.ti.mobile.fankymeyer.lift;
 import ch.bfh.ti.mobile.fankymeyer.sensor.BarometerApplication;
 import ch.bfh.ti.mobile.fankymeyer.sensor.BarometerListener;
 import ch.bfh.ti.mobile.fankymeyer.sensor.IMUApplication;
+import ch.bfh.ti.mobile.fankymeyer.sensor.IMUBarometerFusion;
 import ch.bfh.ti.mobile.fankymeyer.sensor.IMUListener;
 import ch.bfh.ti.mobile.fankymeyer.viewer.LiftViewer;
 import ch.quantasy.tinkerforge.tinker.agency.implementation.TinkerforgeStackAgency;
@@ -15,29 +16,34 @@ import ch.quantasy.tinkerforge.tinker.agent.implementation.TinkerforgeStackAgent
  * @author Christian Meyer
  */
 public class LiftManager {
-	private final IMUApplication imuApplication;
-	private final BarometerApplication barometerApplication;
-	private final LiftViewer showIt;
-	private final TinkerforgeStackAgent agent;
+	private IMUApplication imuApplication;
+	private IMUBarometerFusion fusion;
+	// private BarometerApplication barometerApplication;
+	private LiftViewer showIt;
+	private TinkerforgeStackAgent agent;
 
 	public LiftManager(String hostname) {
 		showIt = new LiftViewer();
 		imuApplication = new IMUApplication(new IMUListener(showIt));
-		barometerApplication = new BarometerApplication(new BarometerListener(
-				showIt));
+		// barometerApplication = new BarometerApplication(new
+		// BarometerListener(
+		// showIt));
+		// fusion = new IMUBarometerFusion(showIt);
 		agent = TinkerforgeStackAgency.getInstance().getStackAgent(
 				new TinkerforgeStackAgentIdentifier(hostname));
 	}
 
 	public void start() {
 		agent.addApplication(imuApplication);
-		agent.addApplication(barometerApplication);
+		// agent.addApplication(barometerApplication);
+		// agent.addApplication(fusion);
 		agent.addApplication(showIt);
 	}
 
 	public void stop() {
 		agent.removeApplication(imuApplication);
-		agent.removeApplication(barometerApplication);
+		// agent.removeApplication(barometerApplication);
+		agent.removeApplication(fusion);
 		agent.removeApplication(showIt);
 	}
 

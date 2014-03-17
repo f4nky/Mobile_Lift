@@ -61,13 +61,13 @@ public class LiftViewer extends AbstractTinkerforgeApplication implements
 	}
 
 	public void showDistance(double distanceInMeters) {
-		String distLine = DIST_FORMAT.format(distanceInMeters) + " m     ";
+		String distLine = DIST_FORMAT.format(distanceInMeters) + " m       ";
 		this.writeValueToLCD(distLine, LiftViewer.DIST_LINE);
 	}
 
 	@Override
-	public void showHeight(int heightInCm) {
-		String heightLine = DIST_FORMAT.format(heightInCm / 100.0) + " m     ";
+	public void showHeight(double heightInM) {
+		String heightLine = DIST_FORMAT.format(heightInM) + " m       ";
 		this.writeValueToLCD(heightLine, LiftViewer.HEIGHT_LINE);
 	}
 
@@ -80,6 +80,8 @@ public class LiftViewer extends AbstractTinkerforgeApplication implements
 							"Acceleration:");
 					this.lcd.writeLine(LiftViewer.DIST_LINE, (short) 0,
 							"Distance:");
+					this.lcd.writeLine(LiftViewer.HEIGHT_LINE, (short) 0,
+							"Height:");
 					this.lcd.backlightOn();
 				} catch (TimeoutException | NotConnectedException e) {
 					// TODO Auto-generated catch block

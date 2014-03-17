@@ -24,7 +24,7 @@ public class IMUApplication extends AbstractTinkerforgeApplication {
 			imu.addAccelerationListener(listener);
 
 			try {
-				imu.setAccelerationPeriod(500);
+				imu.setAccelerationPeriod(5);
 			} catch (TimeoutException e) {
 				e.printStackTrace();
 			} catch (NotConnectedException e) {

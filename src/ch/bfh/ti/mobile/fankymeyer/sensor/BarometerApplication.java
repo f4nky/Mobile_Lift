@@ -6,8 +6,6 @@ import ch.quantasy.tinkerforge.tinker.core.implementation.TinkerforgeDevice;
 
 import com.tinkerforge.BrickletBarometer;
 import com.tinkerforge.Device;
-import com.tinkerforge.NotConnectedException;
-import com.tinkerforge.TimeoutException;
 
 public class BarometerApplication extends AbstractTinkerforgeApplication {
 	private BarometerListener listener;
@@ -25,9 +23,7 @@ public class BarometerApplication extends AbstractTinkerforgeApplication {
 
 			try {
 				baro.setAltitudeCallbackPeriod(500);
-			} catch (TimeoutException e) {
-				e.printStackTrace();
-			} catch (NotConnectedException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -36,7 +32,7 @@ public class BarometerApplication extends AbstractTinkerforgeApplication {
 	@Override
 	public void deviceDisconnected(TinkerforgeStackAgent tinkerforgeStackAgent,
 			Device device) {
-		if (TinkerforgeDevice.getDevice(device) == TinkerforgeDevice.IMU) {
+		if (TinkerforgeDevice.getDevice(device) == TinkerforgeDevice.Barometer) {
 			final BrickletBarometer imu = (BrickletBarometer) device;
 			imu.removeAltitudeListener(listener);
 		}

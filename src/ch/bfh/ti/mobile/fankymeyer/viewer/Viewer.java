@@ -10,5 +10,5 @@ public interface Viewer {
 
 	void showDistance(double distanceInMeters);
 
-	void showHeight(int heightInCm);
+	void showHeight(double heightInM);
 }
