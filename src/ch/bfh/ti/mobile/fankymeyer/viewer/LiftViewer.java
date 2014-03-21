@@ -22,7 +22,7 @@ public class LiftViewer extends AbstractTinkerforgeApplication implements
 	private BrickletLCD20x4 lcd;
 
 	private static final DecimalFormat DIST_FORMAT = new DecimalFormat("0.00");
-	private static final DecimalFormat ACC_FORMAT = new DecimalFormat("#.00");
+	private static final DecimalFormat ACC_FORMAT = new DecimalFormat("#0.00");
 
 	@Override
 	public void deviceConnected(TinkerforgeStackAgent tinkerforgeStackAgent,
@@ -51,6 +51,11 @@ public class LiftViewer extends AbstractTinkerforgeApplication implements
 	@Override
 	public int hashCode() {
 		return 0;
+	}
+
+	public void showAcceleration(double a) {
+		String accLine = "a=" + ACC_FORMAT.format(a) + "        ";
+		this.writeValueToLCD(accLine, LiftViewer.ACC_DATA_LINE);
 	}
 
 	public void showAcceleration(double x, double y, double z) {

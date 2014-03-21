@@ -6,6 +6,8 @@ package ch.bfh.ti.mobile.fankymeyer.viewer;
  * @author Christian Meyer
  */
 public interface Viewer {
+	void showAcceleration(double a);
+
 	void showAcceleration(double x, double y, double z);
 
 	void showDistance(double distanceInMeters);

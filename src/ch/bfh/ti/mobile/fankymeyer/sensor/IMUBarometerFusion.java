@@ -19,24 +19,27 @@ import com.tinkerforge.TinkerforgeException;
 
 public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 	private static int FACTOR = 1;
-	private static double KP1 = 0.55 * FACTOR; // PI observer velocity gain
-	private static double KP2 = 1.0 * FACTOR; // PI observer position gain
-	private static double KI = 0.001 / FACTOR; // PI observer integral gain
+	private static float KP1 = 0.55f * FACTOR; // PI observer velocity gain
+	private static float KP2 = 1.0f * FACTOR; // PI observer position gain
+	private static float KI = 0.001f / FACTOR; // PI observer integral gain
 												// (bias cancellation)
 	private Viewer viewer;
 	private BrickIMU imu;
 	private BrickletBarometer barometer;
 
+	private Timer timer = new Timer();
+
 	private boolean initialized = false;
-	private double altitude_error_i = 0;
-	private double altitude_error = 0;
-	private double inst_acceleration = 0.0;
-	private double delta = 0;
-	private double estimated_velocity = 0.0;
-	private double estimated_altitude = 0.0;
-	private long last_time = System.currentTimeMillis();
-	private double last_orig_altitude = 0;
-	private double last_estimated_altitude = 0;
+
+	private float compensated_acceleration;
+	private float first_altitude = 0.0f;
+	private float altitude_error_i = 0.0f;
+	private float estimated_velocity = 0.0f;
+	private float estimated_altitude = 0.0f;
+	private long first_time;
+	private long last_time;
+	private float last_orig_altitude = 0.0f;
+	private float last_estimated_altitude = 0.0f;
 
 	public IMUBarometerFusion(Viewer viewer) {
 		this.viewer = viewer;
@@ -75,13 +78,20 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 			break;
 		}
 		if (imu != null && barometer != null) {
-			new Timer().schedule(new TimerTask() {
+			last_time = System.currentTimeMillis();
+			timer.schedule(new TimerTask() {
 				@Override
 				public void run() {
 					try {
 						update();
+
+						if (last_time - first_time < 5000) {
+							first_altitude = estimated_altitude;
+						}
+						viewer.showAcceleration(compensated_acceleration);
+						viewer.showDistance(last_estimated_altitude
+								- first_altitude);
 						viewer.showHeight(last_estimated_altitude);
-						System.out.println(last_estimated_altitude);
 					} catch (TinkerforgeException e) {
 						e.printStackTrace();
 					}
@@ -93,15 +103,12 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 	@Override
 	public void deviceDisconnected(TinkerforgeStackAgent tinkerforgeStackAgent,
 			Device device) {
-		// if (TinkerforgeDevice.getDevice(device) == TinkerforgeDevice.IMU) {
-		// final BrickIMU imu = (BrickIMU) device;
-		// // imu.removeAccelerationListener(listener);
-		// }
-		// if (TinkerforgeDevice.getDevice(device) ==
-		// TinkerforgeDevice.Barometer) {
-		// final BrickletBarometer imu = (BrickletBarometer) device;
-		// // imu.removeAltitudeListener(listener);
-		// }
+		timer.cancel();
+		timer = new Timer();
+		if (device == imu)
+			imu = null;
+		if (device == barometer)
+			barometer = null;
 	}
 
 	@Override
@@ -116,21 +123,32 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 		return 0;
 	}
 
-	// Update measurements and compute new altitude every 6ms.
+	/**
+	 * Update measurements and compute new altitude every 6ms.
+	 * 
+	 * @throws TinkerforgeException
+	 */
 	private void update() throws TinkerforgeException {
 		Quaternion q = imu.getQuaternion();
 		Acceleration acc = imu.getAcceleration();
-		double alt = barometer.getAltitude() / 100.0;
+		float alt = barometer.getAltitude() / 100.0f;
 
 		Quaternion compensatedAccQ = computeCompensatedAcc(q, acc);
 		Quaternion compensatedAccQEarth = computeDynamicAccelerationVector(q,
 				compensatedAccQ);
 
+		compensated_acceleration = compensatedAccQEarth.z;
 		last_orig_altitude = alt;
 		last_estimated_altitude = computeAltitude(compensatedAccQEarth.z, alt);
 	}
 
-	// # Remove gravity from accelerometer measurements
+	/**
+	 * Remove gravity from accelerometer measurements
+	 * 
+	 * @param q
+	 * @param a
+	 * @return
+	 */
 	private Quaternion computeCompensatedAcc(Quaternion q, Acceleration a) {
 		Quaternion g = imu.new Quaternion();
 		g.x = 2 * (q.x * q.z - q.w * q.y);
@@ -145,10 +163,17 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 		return result;
 	}
 
-	// Rotate dynamic acceleration vector from sensor frame to earth frame
+	/**
+	 * Rotate dynamic acceleration vector from sensor frame to earth frame
+	 * 
+	 * @param q
+	 * @param compensated_acc_q
+	 * @return
+	 */
 	private Quaternion computeDynamicAccelerationVector(Quaternion q,
 			Quaternion compensated_acc_q) {
-		return q_mult(q_mult(q, compensated_acc_q), q_conj(q));
+		Quaternion tmp = q_mult(q, compensated_acc_q);
+		return q_mult(tmp, q_conj(q));
 	}
 
 	private Quaternion q_conj(Quaternion q) {
@@ -181,35 +206,54 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 	 * @param altitude
 	 * @return
 	 */
-	private double computeAltitude(float compensated_acceleration,
-			double altitude) {
+	private float computeAltitude(float compensated_acceleration, float altitude) {
 		long current_time = System.currentTimeMillis();
 
 		// Initialization
 		if (!initialized) {
 			initialized = true;
-			estimated_altitude = altitude;
+			first_altitude = estimated_altitude = altitude;
 			estimated_velocity = 0;
 			altitude_error_i = 0;
+			first_time = current_time;
 		}
 
 		// Estimation Error
-		altitude_error = altitude - estimated_altitude;
-		altitude_error_i = altitude_error_i + altitude_error;
-		altitude_error_i = Math
-				.min(2500.0, Math.max(-2500.0, altitude_error_i));
+		float altitude_error = altitude - estimated_altitude;
+		altitude_error_i += altitude_error;
+		if (altitude_error_i < -2500f)
+			altitude_error_i = -2500f;
+		if (altitude_error_i > 2500f)
+			altitude_error_i = 2500f;
 
-		inst_acceleration = compensated_acceleration * 9.80665
+		float inst_acceleration = compensated_acceleration * 9.80665f
 				+ altitude_error_i * KI;
-		long dt = current_time - last_time;
+		// time must be in s, not ms
+		float dt = (current_time - last_time) / 1000f;
 
 		// Integrators
-		delta = inst_acceleration * dt + (KP1 * dt) * altitude_error;
-		estimated_altitude += (estimated_velocity / 5.0 + delta) * (dt / 2)
+		float delta = (inst_acceleration + KP1 * altitude_error) * dt;
+		estimated_altitude += (estimated_velocity / 5.0f + delta) * (dt / 2)
 				+ (KP2 * dt) * altitude_error;
-		estimated_velocity += delta * 10.0;
+		estimated_velocity += delta * 10.0f;
 
 		last_time = current_time;
+
+		// should be around 0 for stable system
+		// System.out.println();
+		// // Compensated acc seems to be fine
+		// System.out.println("compensated acc:\t" + compensated_acceleration);
+		// // altitude is ok
+		// System.out.println("altitude:\t\t" + altitude);
+		// System.out.println("dt:\t\t\t" + dt);
+		// System.out.println("altitude error:\t\t" + altitude_error);
+		// // should be around 0
+		// System.out.println("altitude_error_i:\t" + altitude_error_i);
+		// System.out.println("inst_acceleration:\t" + inst_acceleration);
+		// // delta goes crazy
+		// System.out.println("Delta:\t\t\t" + delta);
+		// System.out.println("estimated altitude:\t" + estimated_altitude);
+		// System.out.println("estimated velocity:\t" + estimated_velocity);
 
 		return estimated_altitude;
 	}
