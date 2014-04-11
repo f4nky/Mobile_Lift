@@ -36,7 +36,7 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 	private float altitude_error_i = 0.0f;
 	private float estimated_velocity = 0.0f;
 	private float estimated_altitude = 0.0f;
-	private long first_time;
+	private long start_time;
 	private long last_time;
 	private float last_orig_altitude = 0.0f;
 	private float last_estimated_altitude = 0.0f;
@@ -85,7 +85,7 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 					try {
 						update();
 
-						if (last_time - first_time < 5000) {
+						if (last_time - start_time < 5000) {
 							first_altitude = estimated_altitude;
 						}
 						viewer.showAcceleration(compensated_acceleration);
@@ -209,13 +209,16 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 	private float computeAltitude(float compensated_acceleration, float altitude) {
 		long current_time = System.currentTimeMillis();
 
+		System.out.println(current_time - start_time + ";"
+				+ compensated_acceleration);
+
 		// Initialization
 		if (!initialized) {
 			initialized = true;
 			first_altitude = estimated_altitude = altitude;
 			estimated_velocity = 0;
 			altitude_error_i = 0;
-			first_time = current_time;
+			start_time = current_time;
 		}
 
 		// Estimation Error
@@ -238,22 +241,6 @@ public class IMUBarometerFusion extends AbstractTinkerforgeApplication {
 		estimated_velocity += delta * 10.0f;
 
 		last_time = current_time;
-
-		// should be around 0 for stable system
-		// System.out.println();
-		// // Compensated acc seems to be fine
-		// System.out.println("compensated acc:\t" + compensated_acceleration);
-		// // altitude is ok
-		// System.out.println("altitude:\t\t" + altitude);
-		// System.out.println("dt:\t\t\t" + dt);
-		// System.out.println("altitude error:\t\t" + altitude_error);
-		// // should be around 0
-		// System.out.println("altitude_error_i:\t" + altitude_error_i);
-		// System.out.println("inst_acceleration:\t" + inst_acceleration);
-		// // delta goes crazy
-		// System.out.println("Delta:\t\t\t" + delta);
-		// System.out.println("estimated altitude:\t" + estimated_altitude);
-		// System.out.println("estimated velocity:\t" + estimated_velocity);
 
 		return estimated_altitude;
 	}
